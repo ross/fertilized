@@ -1,0 +1,41 @@
+---
+Dr Earth All Purpose:
+  available: False
+  N:
+    value: 5
+    slow-release: 1
+  K: 2
+Vigro Lawn Fertilizer:
+  N:
+    value: 29
+    slow-release: .02
+  K: 4
+Rock Phosphate:
+  P: 3
+E.B. Stone Lawn Food:
+  available: False
+  N:
+    value: 10
+    slow-release: 1
+  P: 1
+  K: 4
+Hi-Yield Super Phosphate:
+  P: 18
+  K: 0
+Hi-Yield Muriate of Potash:
+  K: 60
+E.B. Stone Balanced:
+  N:
+    value: 5
+    slow-release: 1
+  P: 5
+  K: 5
+True Organic Lawn Food:
+  N:
+    value: 10
+    slow-release: .94
+  P: 1
+  K: 1
+  Fe: 1
+Moss Out!:
+  Fe: 10

@@ -1,0 +1,39 @@
+---
+Circular Lawn:
+  square-feet: 585
+  application:
+    April: &application_april_circular_lawn
+      Rate: .875
+      N:
+        value: 25
+        slow-release: .7
+      P: 3
+      K: 10
+      Fe: 5
+    June: *application_april_circular_lawn
+    August: *application_april_circular_lawn
+    October:
+      Rate: 1
+      N:
+        value: 20
+        slow-release: .7
+      P: 3
+      K: 20
+      Fe: 5
+West Parking Strip:
+  square-feet: 747
+  application: &application_west_parking_strip
+    April: &application_april_west_parking_strip
+      Rate: 1
+      N:
+        value: 25
+        slow-release: .7
+      P: 3
+      K: 10
+      Fe: 10
+    June: *application_april_west_parking_strip
+    August: *application_april_west_parking_strip
+    October: *application_april_west_parking_strip
+North Parking Strip:
+  square-feet: 315
+  application: *application_west_parking_strip
