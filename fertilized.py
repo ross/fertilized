@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from argparse import ArgumentParser
 from pathlib import Path
 from scipy.optimize import nnls
 
@@ -114,8 +115,42 @@ def optimize_fertilizers(targets, fertilizers):
 
 
 def main():
+    parser = ArgumentParser(description='Calculate fertilizer requirements')
+    parser.add_argument(
+        '--area',
+        action='append',
+        dest='areas',
+        metavar='AREA',
+        help='limit output to the specified area(s), case-insensitive'
+        ' substring match (can be repeated)',
+    )
+    parser.add_argument(
+        '--application',
+        action='append',
+        dest='applications',
+        metavar='APPLICATION',
+        help='limit output to the specified application period(s),'
+        ' case-insensitive substring match (can be repeated)',
+    )
+    args = parser.parse_args()
+
     areas = load_yaml('areas.yaml')
     fertilizers = parse_fertilizer_nutrients(load_yaml('fertilizers.yaml'))
+
+    if args.areas:
+        filters = [f.lower() for f in args.areas]
+        areas = {
+            name: data
+            for name, data in areas.items()
+            if any(f in name.lower() for f in filters)
+        }
+        if not areas:
+            parser.error(
+                f"no areas matched: {', '.join(args.areas)}"
+            )
+
+    if args.applications:
+        app_filters = [f.lower() for f in args.applications]
 
     for area_name, area_data in areas.items():
         area_sqft = area_data['square-feet']
@@ -123,7 +158,15 @@ def main():
         print(f"{area_name} ({area_sqft} sq ft)")
         print(f"{'=' * 60}")
 
-        for period, application in area_data['application'].items():
+        applications = area_data['application']
+        if args.applications:
+            applications = {
+                name: data
+                for name, data in applications.items()
+                if any(f in name.lower() for f in app_filters)
+            }
+
+        for period, application in applications.items():
             targets = compute_nutrient_targets(area_sqft, application)
             amounts, actuals = optimize_fertilizers(targets, fertilizers)
 
