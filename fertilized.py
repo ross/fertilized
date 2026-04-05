@@ -173,8 +173,9 @@ def main():
                 f"no areas matched: {', '.join(args.areas)}"
             )
 
-    if args.applications:
-        app_filters = [f.lower() for f in args.applications]
+    app_filters = (
+        [f.lower() for f in args.applications] if args.applications else None
+    )
 
     for area_name, area_data in areas.items():
         area_sqft = area_data['square-feet']
@@ -183,7 +184,7 @@ def main():
         print(f"{'=' * 60}")
 
         applications = area_data['application']
-        if args.applications:
+        if app_filters:
             applications = {
                 name: data
                 for name, data in applications.items()
