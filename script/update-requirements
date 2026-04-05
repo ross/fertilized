@@ -1,0 +1,37 @@
+#!/bin/bash
+
+# Get current script path
+SCRIPT_PATH="$(dirname -- "$(readlink -f -- "${0}")")"
+# Activate Python venv
+source "${SCRIPT_PATH}/common.sh"
+ROOT=$(dirname "$SCRIPT_PATH")
+
+TEMP_DIR=$(mktemp -d)
+trap 'rm -rf "$TEMP_DIR"' EXIT
+
+# Write setup.py to temporary directory
+cat <<EOF >"$TEMP_DIR/setup.py"
+from setuptools import setup
+
+setup(
+    name='your-package-name',
+    version='0.0.1',
+    install_requires=[
+      'numpy>=2.2.6',
+      'PyYAML>=6.0.3',
+      'scipy>=1.15.3',
+      'black>=26.3.0,<27.0.0',
+      'proviso>=0.3.0',
+      'pycodestyle>=2.7.0',
+      'pyflakes>=2.3.1',
+    ],
+    python_requires='>=3.10',
+)
+EOF
+
+PYTHON_VERSION=$(python3 -c 'import platform; print(platform.python_version())')
+
+# Run proviso on the temporary directory
+proviso --directory="$TEMP_DIR" --header="# TODO: Run ./script/update-requirements once setup.py is complete" "$@"
+
+mv "${TEMP_DIR}/requirements.txt" "${ROOT}/requirements.txt"
