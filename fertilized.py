@@ -141,6 +141,65 @@ def optimize_fertilizers(targets, fertilizers):
     return amounts, actuals
 
 
+def print_application_results(period, targets, amounts, actuals):
+    print(f"\n  {period}")
+    print(f"  {'-' * 50}")
+
+    if amounts:
+        max_name_len = max(len(n) for n in amounts)
+        for name, grams in sorted(amounts.items(), key=lambda x: -x[1]):
+            print(f"    {name:<{max_name_len}}  {grams:>8.1f} g")
+    else:
+        print("    No fertilizers needed")
+
+    print()
+    all_nutrients = sorted(set(targets.keys()) | set(actuals.keys()))
+    max_label = max(
+        (
+            len(n)
+            for n in all_nutrients
+            if n not in ('Ns', 'Nf') and targets.get(n, 0) > 0
+        ),
+        default=8,
+    )
+    # +2 for the Ns/Nf indent
+    max_label = max(max_label, 4)
+    print(
+        f"    {'Nutrient':<{max_label}}"
+        f" {'Target':>10} {'Actual':>10} {'Error':>8}"
+    )
+    print(f"    {'':-<{max_label}}" f" {'':-<10} {'':-<10} {'':-<8}")
+
+    # Show N total with Ns/Nf breakdown first
+    n_target = targets.get('Ns', 0) + targets.get('Nf', 0)
+    n_actual = actuals.get('Ns', 0) + actuals.get('Nf', 0)
+    if n_target > 0 or n_actual > 0:
+        print(
+            f"    {'N':<{max_label}} {n_target:>9.1f}g"
+            f" {n_actual:>9.1f}g {pct_error(n_target, n_actual):>8}"
+        )
+        for nutrient in ('Ns', 'Nf'):
+            t = targets.get(nutrient, 0)
+            a = actuals.get(nutrient, 0)
+            print(
+                f"    {'  ' + nutrient:<{max_label}} {t:>9.1f}g"
+                f" {a:>9.1f}g {pct_error(t, a):>8}"
+            )
+
+    # Show all other nutrients with non-zero targets
+    for nutrient in all_nutrients:
+        if nutrient in ('Ns', 'Nf'):
+            continue
+        t = targets.get(nutrient, 0)
+        if t == 0:
+            continue
+        a = actuals.get(nutrient, 0)
+        print(
+            f"    {nutrient:<{max_label}} {t:>9.1f}g"
+            f" {a:>9.1f}g {pct_error(t, a):>8}"
+        )
+
+
 def main():
     parser = ArgumentParser(description='Calculate fertilizer requirements')
     parser.add_argument(
@@ -196,62 +255,7 @@ def main():
         for period, application in applications.items():
             targets = compute_nutrient_targets(area_sqft, application)
             amounts, actuals = optimize_fertilizers(targets, fertilizers)
-
-            print(f"\n  {period}")
-            print(f"  {'-' * 50}")
-
-            if amounts:
-                max_name_len = max(len(n) for n in amounts)
-                for name, grams in sorted(amounts.items(), key=lambda x: -x[1]):
-                    print(f"    {name:<{max_name_len}}  {grams:>8.1f} g")
-            else:
-                print("    No fertilizers needed")
-
-            print()
-            all_nutrients = sorted(set(targets.keys()) | set(actuals.keys()))
-            max_label = max(
-                (
-                    len(n)
-                    for n in all_nutrients
-                    if n not in ('Ns', 'Nf') and targets.get(n, 0) > 0
-                ),
-                default=8,
-            )
-            # +2 for the Ns/Nf indent
-            max_label = max(max_label, 4)
-            print(
-                f"    {'Nutrient':<{max_label}}"
-                f" {'Target':>10} {'Actual':>10} {'Error':>8}"
-            )
-            print(f"    {'':-<{max_label}}" f" {'':-<10} {'':-<10} {'':-<8}")
-
-            # Show N total with Ns/Nf breakdown first
-            n_target = targets.get('Ns', 0) + targets.get('Nf', 0)
-            n_actual = actuals.get('Ns', 0) + actuals.get('Nf', 0)
-            if n_target > 0 or n_actual > 0:
-                print(
-                    f"    {'N':<{max_label}} {n_target:>9.1f}g"
-                    f" {n_actual:>9.1f}g {pct_error(n_target, n_actual):>8}"
-                )
-                for nutrient in ('Ns', 'Nf'):
-                    t = targets.get(nutrient, 0)
-                    a = actuals.get(nutrient, 0)
-                    print(
-                        f"    {'  ' + nutrient:<{max_label}} {t:>9.1f}g"
-                        f" {a:>9.1f}g {pct_error(t, a):>8}"
-                    )
-            # Show all other nutrients with non-zero targets
-            for nutrient in all_nutrients:
-                if nutrient in ('Ns', 'Nf'):
-                    continue
-                t = targets.get(nutrient, 0)
-                if t == 0:
-                    continue
-                a = actuals.get(nutrient, 0)
-                print(
-                    f"    {nutrient:<{max_label}} {t:>9.1f}g"
-                    f" {a:>9.1f}g {pct_error(t, a):>8}"
-                )
+            print_application_results(period, targets, amounts, actuals)
 
 
 if __name__ == '__main__':
