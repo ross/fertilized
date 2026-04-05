@@ -221,24 +221,34 @@ def main():
             )
             # +2 for the Ns/Nf indent
             max_label = max(max_label, 4)
-            print(f"    {'Nutrient':<{max_label}} {'Target':>10} {'Actual':>10}")
-            print(f"    {'':-<{max_label}} {'':-<10} {'':-<10}")
+            print(
+                f"    {'Nutrient':<{max_label}}"
+                f" {'Target':>10} {'Actual':>10} {'Error':>8}"
+            )
+            print(
+                f"    {'':-<{max_label}}"
+                f" {'':-<10} {'':-<10} {'':-<8}"
+            )
+
+            def pct_error(target, actual):
+                if target == 0:
+                    return ''
+                return f"{(actual - target) / target * 100:>+7.1f}%"
+
             # Show N total with Ns/Nf breakdown first
             n_target = targets.get('Ns', 0) + targets.get('Nf', 0)
             n_actual = actuals.get('Ns', 0) + actuals.get('Nf', 0)
             if n_target > 0 or n_actual > 0:
-                n_flag = ' *' if abs(n_actual - n_target) > 0.5 else ''
                 print(
                     f"    {'N':<{max_label}} {n_target:>9.1f}g"
-                    f" {n_actual:>9.1f}g{n_flag}"
+                    f" {n_actual:>9.1f}g {pct_error(n_target, n_actual):>8}"
                 )
                 for nutrient in ('Ns', 'Nf'):
                     t = targets.get(nutrient, 0)
                     a = actuals.get(nutrient, 0)
-                    flag = ' *' if abs(a - t) > 0.5 else ''
                     print(
                         f"    {'  ' + nutrient:<{max_label}} {t:>9.1f}g"
-                        f" {a:>9.1f}g{flag}"
+                        f" {a:>9.1f}g {pct_error(t, a):>8}"
                     )
             # Show all other nutrients with non-zero targets
             for nutrient in all_nutrients:
@@ -248,10 +258,9 @@ def main():
                 if t == 0:
                     continue
                 a = actuals.get(nutrient, 0)
-                flag = ' *' if abs(a - t) > 0.5 else ''
                 print(
                     f"    {nutrient:<{max_label}} {t:>9.1f}g"
-                    f" {a:>9.1f}g{flag}"
+                    f" {a:>9.1f}g {pct_error(t, a):>8}"
                 )
 
 
