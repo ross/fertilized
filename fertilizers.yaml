@@ -13,7 +13,6 @@ Vigro Lawn Fertilizer:
 Rock Phosphate:
   P: 3
 E.B. Stone Lawn Food:
-  available: False
   N:
     value: 10
     slow-release: 1
