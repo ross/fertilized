@@ -7,7 +7,8 @@ import numpy as np
 import yaml
 
 LBS_TO_GRAMS = 453.592
-NUTRIENTS = ['Ns', 'Nf', 'P', 'K', 'Fe']
+# Keys in YAML data that are metadata, not nutrients/targets
+META_KEYS = {'Rate', 'N', 'available'}
 BASE_DIR = Path(__file__).parent
 
 
@@ -36,9 +37,9 @@ def parse_fertilizer_nutrients(fertilizers):
             slow_frac = 0.0
         parsed[name]['Ns'] = n_total * slow_frac
         parsed[name]['Nf'] = n_total * (1 - slow_frac)
-        for nutrient in ('P', 'K', 'Fe'):
-            value = data.get(nutrient, 0)
-            parsed[name][nutrient] = float(value)
+        for key, value in data.items():
+            if key not in META_KEYS:
+                parsed[name].setdefault(key, float(value))
     return parsed
 
 
@@ -77,9 +78,15 @@ def compute_nutrient_targets(area_sqft, application):
     else:
         targets = {'Ns': 0.0, 'Nf': 0.0}
 
-    for nutrient in ('P', 'K', 'Fe'):
-        pct = application.get(nutrient, 0)
-        targets[nutrient] = total_product_lbs * (float(pct) / 100.0) * LBS_TO_GRAMS
+    for key, value in application.items():
+        if key in META_KEYS:
+            continue
+        if isinstance(value, str) and value.endswith('lb'):
+            # Absolute weight in lbs per 1000 sqft
+            lbs_per_ksqft = float(value[:-2])
+            targets[key] = lbs_per_ksqft * (area_sqft / 1000.0) * LBS_TO_GRAMS
+        else:
+            targets[key] = total_product_lbs * (float(value) / 100.0) * LBS_TO_GRAMS
 
     return targets
 
@@ -88,23 +95,31 @@ def optimize_fertilizers(targets, fertilizers):
     """Find optimal grams of each fertilizer to meet nutrient targets.
 
     Uses non-negative least squares which naturally produces sparse solutions.
+    Nutrients are discovered dynamically from the union of targets and
+    fertilizer profiles.
     """
     fert_names = list(fertilizers.keys())
     n_ferts = len(fert_names)
 
+    # Collect all nutrient keys across targets and fertilizers
+    all_nutrients = sorted(
+        set(targets.keys())
+        | {n for f in fertilizers.values() for n in f.keys()}
+    )
+
     # Build nutrient matrix: each column is a fertilizer, each row is a
     # nutrient. Values are grams of nutrient per gram of fertilizer (pct/100).
-    nutrient_matrix = np.zeros((len(NUTRIENTS), n_ferts))
+    nutrient_matrix = np.zeros((len(all_nutrients), n_ferts))
     for j, name in enumerate(fert_names):
-        for i, nutrient in enumerate(NUTRIENTS):
-            nutrient_matrix[i, j] = fertilizers[name][nutrient] / 100.0
+        for i, nutrient in enumerate(all_nutrients):
+            nutrient_matrix[i, j] = fertilizers[name].get(nutrient, 0) / 100.0
 
-    target_vec = np.array([targets[n] for n in NUTRIENTS])
+    target_vec = np.array([targets.get(n, 0) for n in all_nutrients])
 
     # Only include nutrients that have non-zero targets and can be provided by
     # at least one fertilizer
     active = []
-    for i, nutrient in enumerate(NUTRIENTS):
+    for i, nutrient in enumerate(all_nutrients):
         if target_vec[i] > 0 and np.any(nutrient_matrix[i] > 0):
             active.append(i)
     active_matrix = nutrient_matrix[active]
@@ -118,7 +133,7 @@ def optimize_fertilizers(targets, fertilizers):
             amounts[name] = weights[j]
 
     actual = nutrient_matrix @ weights
-    actuals = {NUTRIENTS[i]: actual[i] for i in range(len(NUTRIENTS))}
+    actuals = {all_nutrients[i]: actual[i] for i in range(len(all_nutrients))}
 
     return amounts, actuals
 
@@ -144,7 +159,9 @@ def main():
     args = parser.parse_args()
 
     areas = load_yaml('areas.yaml')
-    fertilizers = parse_fertilizer_nutrients(load_yaml('fertilizers.yaml'))
+    products = load_yaml('fertilizers.yaml')
+    products.update(load_yaml('treatments.yaml'))
+    fertilizers = parse_fertilizer_nutrients(products)
 
     if args.areas:
         filters = [f.lower() for f in args.areas]
@@ -191,22 +208,50 @@ def main():
                 print("    No fertilizers needed")
 
             print()
-            print(f"    {'Nutrient':<10} {'Target':>10} {'Actual':>10}")
-            print(f"    {'':-<10} {'':-<10} {'':-<10}")
-            # Show N total, then Ns/Nf breakdown, then P, K, Fe
-            n_target = targets['Ns'] + targets['Nf']
-            n_actual = actuals['Ns'] + actuals['Nf']
-            n_flag = ' *' if abs(n_actual - n_target) > 0.5 else ''
-            print(
-                f"    {'N':<10} {n_target:>9.1f}g {n_actual:>9.1f}g{n_flag}"
+            all_nutrients = sorted(
+                set(targets.keys()) | set(actuals.keys())
             )
-            for nutrient in NUTRIENTS:
-                t = targets[nutrient]
-                a = actuals[nutrient]
-                flag = ' *' if abs(a - t) > 0.5 else ''
-                label = f"  {nutrient}" if nutrient in ('Ns', 'Nf') else nutrient
+            max_label = max(
+                (
+                    len(n)
+                    for n in all_nutrients
+                    if n not in ('Ns', 'Nf') and targets.get(n, 0) > 0
+                ),
+                default=8,
+            )
+            # +2 for the Ns/Nf indent
+            max_label = max(max_label, 4)
+            print(f"    {'Nutrient':<{max_label}} {'Target':>10} {'Actual':>10}")
+            print(f"    {'':-<{max_label}} {'':-<10} {'':-<10}")
+            # Show N total with Ns/Nf breakdown first
+            n_target = targets.get('Ns', 0) + targets.get('Nf', 0)
+            n_actual = actuals.get('Ns', 0) + actuals.get('Nf', 0)
+            if n_target > 0 or n_actual > 0:
+                n_flag = ' *' if abs(n_actual - n_target) > 0.5 else ''
                 print(
-                    f"    {label:<10} {t:>9.1f}g {a:>9.1f}g{flag}"
+                    f"    {'N':<{max_label}} {n_target:>9.1f}g"
+                    f" {n_actual:>9.1f}g{n_flag}"
+                )
+                for nutrient in ('Ns', 'Nf'):
+                    t = targets.get(nutrient, 0)
+                    a = actuals.get(nutrient, 0)
+                    flag = ' *' if abs(a - t) > 0.5 else ''
+                    print(
+                        f"    {'  ' + nutrient:<{max_label}} {t:>9.1f}g"
+                        f" {a:>9.1f}g{flag}"
+                    )
+            # Show all other nutrients with non-zero targets
+            for nutrient in all_nutrients:
+                if nutrient in ('Ns', 'Nf'):
+                    continue
+                t = targets.get(nutrient, 0)
+                if t == 0:
+                    continue
+                a = actuals.get(nutrient, 0)
+                flag = ' *' if abs(a - t) > 0.5 else ''
+                print(
+                    f"    {nutrient:<{max_label}} {t:>9.1f}g"
+                    f" {a:>9.1f}g{flag}"
                 )
 
 

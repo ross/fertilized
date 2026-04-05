@@ -2,18 +2,27 @@
 Circular Lawn:
   square-feet: 585
   application:
-    April: &application_april_circular_lawn
-      Rate: .875
+    Feburary:
+      Fe: .4lb
+      Prodiamine: .0036lb
+    April:
+      Rate: .5
+      N:
+        value: 12.5
+        slow-release: .7
+      P: 3
+      K: 10
+      Fe: 5
+      Prodiamine: .0036lb
+    June: &application_june_circular_lawn
       N:
         value: 25
         slow-release: .7
       P: 3
       K: 10
       Fe: 5
-    June: *application_april_circular_lawn
-    August: *application_april_circular_lawn
+    August: *application_june_circular_lawn
     October:
-      Rate: 1
       N:
         value: 20
         slow-release: .7
@@ -23,17 +32,29 @@ Circular Lawn:
 West Parking Strip:
   square-feet: 747
   application: &application_west_parking_strip
-    April: &application_april_west_parking_strip
-      Rate: 1
+    Feburary:
+      Fe: .4lb
+      Prodiamine: .0036lb
+    April:
+      Rate: .5
       N:
-        value: 25
+        value: 12.5
         slow-release: .7
       P: 3
       K: 10
       Fe: 10
-    June: *application_april_west_parking_strip
-    August: *application_april_west_parking_strip
-    October: *application_april_west_parking_strip
+      Prodiamine: .0036lb
+    June: &application_june_west_parking_strip
+      Rate: .5
+      N:
+        value: 12.5
+        slow-release: .7
+      P: 3
+      K: 10
+      Fe: 10
+      Prodiamine: .0036lb
+    August: *application_june_west_parking_strip
+    October: *application_june_west_parking_strip
 North Parking Strip:
   square-feet: 315
   application: *application_west_parking_strip

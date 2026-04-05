@@ -1,11 +1,11 @@
 ---
 Moss Out!:
-  # 4 # light infestation
-  # 5 # heavy infestation
-  Fe: 10
+  Fe: 10 # 10%
+  # 4 -> .4 # light infestation
+  # 5 -> .5 # heavy infestation
 Barricade:
+  Prodiamine: 0.48 # .48%
   # 50% early spring, 50% late spring
-  # low: 1.5 # cool season grasses
-  # medium: 3
-  # high: 7.2 # warm season grasses
-  Prodiamine: 1
+  # low: 1.5 -> 0.0072 # cool season grasses
+  # medium: 3 -> 0.0144
+  # high: 7.2 -> 0.03456 # warm season grasses
