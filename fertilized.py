@@ -48,26 +48,35 @@ def compute_nutrient_targets(area_sqft, application):
     Splits N into Ns (slow-release) and Nf (fast-release) based on the
     slow-release fraction specified in the application.
     """
-    rate = application['Rate']
-    n_data = application['N']
+    rate = application.get('Rate', 1)
+    n_data = application.get('N')
+    has_n = n_data is not None
     if isinstance(n_data, dict):
         n_pct = float(n_data['value'])
         slow_frac = float(n_data.get('slow-release', 0))
-    else:
+    elif has_n:
         n_pct = float(n_data)
         slow_frac = 0.0
+    else:
+        # No N specified (e.g. a treatment application). Use N=100 so that
+        # total product weight equals the rate directly (lbs per 1000 sqft).
+        n_pct = 100.0
+        slow_frac = 0.0
 
-    # Total N in lbs
+    # Total N in lbs (based on rate)
     n_lbs = area_sqft / 1000.0 * rate
     # Total product weight in lbs
     total_product_lbs = n_lbs / (n_pct / 100.0)
-    # Total N in grams
-    n_grams = total_product_lbs * (n_pct / 100.0) * LBS_TO_GRAMS
 
-    targets = {
-        'Ns': n_grams * slow_frac,
-        'Nf': n_grams * (1 - slow_frac),
-    }
+    if has_n:
+        n_grams = total_product_lbs * (n_pct / 100.0) * LBS_TO_GRAMS
+        targets = {
+            'Ns': n_grams * slow_frac,
+            'Nf': n_grams * (1 - slow_frac),
+        }
+    else:
+        targets = {'Ns': 0.0, 'Nf': 0.0}
+
     for nutrient in ('P', 'K', 'Fe'):
         pct = application.get(nutrient, 0)
         targets[nutrient] = total_product_lbs * (float(pct) / 100.0) * LBS_TO_GRAMS
@@ -165,7 +174,6 @@ def main():
                 for name, data in applications.items()
                 if any(f in name.lower() for f in app_filters)
             }
-
         for period, application in applications.items():
             targets = compute_nutrient_targets(area_sqft, application)
             amounts, actuals = optimize_fertilizers(targets, fertilizers)
