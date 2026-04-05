@@ -155,15 +155,16 @@ def print_application_results(period, targets, amounts, actuals):
     print()
     all_nutrients = sorted(set(targets.keys()) | set(actuals.keys()))
     max_label = max(
-        (
-            len(n)
-            for n in all_nutrients
-            if n not in ('Ns', 'Nf') and targets.get(n, 0) > 0
+        len('Nutrient'),
+        max(
+            (
+                len(n)
+                for n in all_nutrients
+                if n not in ('Ns', 'Nf') and targets.get(n, 0) > 0
+            ),
+            default=0,
         ),
-        default=8,
     )
-    # +2 for the Ns/Nf indent
-    max_label = max(max_label, 4)
     print(
         f"    {'Nutrient':<{max_label}}"
         f" {'Target':>10} {'Actual':>10} {'Error':>8}"
