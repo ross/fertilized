@@ -17,6 +17,7 @@ setup(
     name='your-package-name',
     version='0.0.1',
     install_requires=[
+      'isort>=5.11.5',
       'numpy>=2.2.6',
       'PyYAML>=6.0.3',
       'scipy>=1.15.3',

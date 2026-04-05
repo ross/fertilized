@@ -5,9 +5,9 @@
 # Exit on any error
 set -e
 
-ROOT=$(dirname $(dirname $0))
+ROOT="$(dirname -- "${SCRIPT_PATH}")"
 
-# Change to path base directory
+# Change to base directory
 cd "${ROOT}"
 
 # If no venv name is set, set it to "env"

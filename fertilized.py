@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 from argparse import ArgumentParser
 from pathlib import Path
-from scipy.optimize import nnls
 
 import numpy as np
 import yaml
+from scipy.optimize import nnls
 
 LBS_TO_GRAMS = 453.592
 # Keys in YAML data that are metadata, not nutrients/targets
@@ -73,10 +73,7 @@ def compute_nutrient_targets(area_sqft, application):
         n_lbs = area_sqft / 1000.0 * rate
         total_product_lbs = n_lbs / (n_pct / 100.0)
         n_grams = n_lbs * LBS_TO_GRAMS
-        targets = {
-            'Ns': n_grams * slow_frac,
-            'Nf': n_grams * (1 - slow_frac),
-        }
+        targets = {'Ns': n_grams * slow_frac, 'Nf': n_grams * (1 - slow_frac)}
     else:
         # Rate is lbs product per 1000 sqft (e.g. treatment applications)
         total_product_lbs = area_sqft / 1000.0 * rate
@@ -90,7 +87,9 @@ def compute_nutrient_targets(area_sqft, application):
             lbs_per_ksqft = float(value[:-2])
             targets[key] = lbs_per_ksqft * (area_sqft / 1000.0) * LBS_TO_GRAMS
         else:
-            targets[key] = total_product_lbs * (float(value) / 100.0) * LBS_TO_GRAMS
+            targets[key] = (
+                total_product_lbs * (float(value) / 100.0) * LBS_TO_GRAMS
+            )
 
     return targets
 
@@ -175,9 +174,7 @@ def main():
             if any(f in name.lower() for f in filters)
         }
         if not areas:
-            parser.error(
-                f"no areas matched: {', '.join(args.areas)}"
-            )
+            parser.error(f"no areas matched: {', '.join(args.areas)}")
 
     app_filters = (
         [f.lower() for f in args.applications] if args.applications else None
@@ -205,17 +202,13 @@ def main():
 
             if amounts:
                 max_name_len = max(len(n) for n in amounts)
-                for name, grams in sorted(
-                    amounts.items(), key=lambda x: -x[1]
-                ):
+                for name, grams in sorted(amounts.items(), key=lambda x: -x[1]):
                     print(f"    {name:<{max_name_len}}  {grams:>8.1f} g")
             else:
                 print("    No fertilizers needed")
 
             print()
-            all_nutrients = sorted(
-                set(targets.keys()) | set(actuals.keys())
-            )
+            all_nutrients = sorted(set(targets.keys()) | set(actuals.keys()))
             max_label = max(
                 (
                     len(n)
@@ -230,10 +223,7 @@ def main():
                 f"    {'Nutrient':<{max_label}}"
                 f" {'Target':>10} {'Actual':>10} {'Error':>8}"
             )
-            print(
-                f"    {'':-<{max_label}}"
-                f" {'':-<10} {'':-<10} {'':-<8}"
-            )
+            print(f"    {'':-<{max_label}}" f" {'':-<10} {'':-<10} {'':-<8}")
 
             # Show N total with Ns/Nf breakdown first
             n_target = targets.get('Ns', 0) + targets.get('Nf', 0)
