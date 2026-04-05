@@ -51,31 +51,29 @@ def compute_nutrient_targets(area_sqft, application):
     """
     rate = application.get('Rate', 1)
     n_data = application.get('N')
-    has_n = n_data is not None
+
     if isinstance(n_data, dict):
         n_pct = float(n_data['value'])
         slow_frac = float(n_data.get('slow-release', 0))
-    elif has_n:
+    elif n_data is not None:
         n_pct = float(n_data)
         slow_frac = 0.0
     else:
-        # No N specified (e.g. a treatment application). Use N=100 so that
-        # total product weight equals the rate directly (lbs per 1000 sqft).
-        n_pct = 100.0
+        n_pct = None
         slow_frac = 0.0
 
-    # Total N in lbs (based on rate)
-    n_lbs = area_sqft / 1000.0 * rate
-    # Total product weight in lbs
-    total_product_lbs = n_lbs / (n_pct / 100.0)
-
-    if has_n:
-        n_grams = total_product_lbs * (n_pct / 100.0) * LBS_TO_GRAMS
+    if n_pct is not None:
+        # Rate is lbs N per 1000 sqft, derive total product weight from N%
+        n_lbs = area_sqft / 1000.0 * rate
+        total_product_lbs = n_lbs / (n_pct / 100.0)
+        n_grams = n_lbs * LBS_TO_GRAMS
         targets = {
             'Ns': n_grams * slow_frac,
             'Nf': n_grams * (1 - slow_frac),
         }
     else:
+        # Rate is lbs product per 1000 sqft (e.g. treatment applications)
+        total_product_lbs = area_sqft / 1000.0 * rate
         targets = {'Ns': 0.0, 'Nf': 0.0}
 
     for key, value in application.items():
