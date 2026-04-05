@@ -12,6 +12,12 @@ META_KEYS = {'Rate', 'N', 'available'}
 BASE_DIR = Path(__file__).parent
 
 
+def pct_error(target, actual):
+    if target == 0:
+        return ''
+    return f"{(actual - target) / target * 100:>+7.1f}%"
+
+
 def load_yaml(filename):
     with open(BASE_DIR / filename) as f:
         return yaml.safe_load(f)
@@ -228,11 +234,6 @@ def main():
                 f"    {'':-<{max_label}}"
                 f" {'':-<10} {'':-<10} {'':-<8}"
             )
-
-            def pct_error(target, actual):
-                if target == 0:
-                    return ''
-                return f"{(actual - target) / target * 100:>+7.1f}%"
 
             # Show N total with Ns/Nf breakdown first
             n_target = targets.get('Ns', 0) + targets.get('Nf', 0)
