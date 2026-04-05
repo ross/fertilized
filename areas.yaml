@@ -2,7 +2,7 @@
 Circular Lawn:
   square-feet: 585
   application:
-    Feburary:
+    February:
       Fe: .4lb
       Prodiamine: .0036lb
     April:
@@ -32,7 +32,7 @@ Circular Lawn:
 West Parking Strip:
   square-feet: 747
   application: &application_west_parking_strip
-    Feburary:
+    February:
       Fe: .4lb
       Prodiamine: .0036lb
     April:
