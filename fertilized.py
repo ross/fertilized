@@ -7,8 +7,10 @@ import yaml
 from scipy.optimize import nnls
 
 LBS_TO_GRAMS = 453.592
-# Keys in YAML data that are metadata, not nutrients/targets
-META_KEYS = {'Rate', 'N', 'available'}
+# Keys in fertilizer/application YAML entries that are not nutrient percentages.
+# 'N' is handled specially (split into Ns/Nf), 'Rate' controls application
+# dosage, and 'available' marks whether a product is in stock.
+NON_NUTRIENT_KEYS = {'Rate', 'N', 'available'}
 BASE_DIR = Path(__file__).parent
 
 
@@ -44,7 +46,7 @@ def parse_fertilizer_nutrients(fertilizers):
         parsed[name]['Ns'] = n_total * slow_frac
         parsed[name]['Nf'] = n_total * (1 - slow_frac)
         for key, value in data.items():
-            if key not in META_KEYS:
+            if key not in NON_NUTRIENT_KEYS:
                 parsed[name].setdefault(key, float(value))
     return parsed
 
@@ -80,7 +82,7 @@ def compute_nutrient_targets(area_sqft, application):
         targets = {'Ns': 0.0, 'Nf': 0.0}
 
     for key, value in application.items():
-        if key in META_KEYS:
+        if key in NON_NUTRIENT_KEYS:
             continue
         if isinstance(value, str) and value.endswith('lb'):
             # Absolute weight in lbs per 1000 sqft
