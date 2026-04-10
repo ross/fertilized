@@ -149,7 +149,7 @@ def print_application_results(period, targets, amounts, actuals):
 
     if amounts:
         max_name_len = max(len(n) for n in amounts)
-        for name, grams in sorted(amounts.items(), key=lambda x: -x[1]):
+        for name, grams in sorted(amounts.items()):
             print(f"    {name:<{max_name_len}}  {grams:>8.1f} g")
     else:
         print("    No fertilizers needed")
