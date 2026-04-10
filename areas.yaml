@@ -58,3 +58,10 @@ West Parking Strip:
 North Parking Strip:
   square-feet: 315
   application: *application_west_parking_strip
+Tree Bases:
+  square-feet: 56.5
+  application:
+    February:
+      Prodiamine: .0036lb
+    April:
+      Prodiamine: .0036lb
