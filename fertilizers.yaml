@@ -20,7 +20,12 @@ E.B. Stone Lawn Food:
   K: 4
 Hi-Yield Super Phosphate:
   P: 18
+Hi-Yield Tripple Phosphate:
+  P: 45
+Super Po:
+  K: 20
 Hi-Yield Muriate of Potash:
+  available: False
   K: 60
 E.B. Stone Balanced:
   N:
