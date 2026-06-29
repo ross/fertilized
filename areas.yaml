@@ -6,17 +6,16 @@ Circular Lawn:
       Fe: .4lb
       Prodiamine: .0036lb
     April:
-      Rate: .5
+      Rate: 0.5
       N:
         value: 12.5
-        slow-release: .7
+        slow-release: 0.7
       P: 3
       K: 10
-    May: *application_treatments
     June: &application_june_circular_lawn
       N:
         value: 25
-        slow-release: .7
+        slow-release: 0.7
       P: 3
       K: 10
       Fe: 5
@@ -25,7 +24,7 @@ Circular Lawn:
     October:
       N:
         value: 20
-        slow-release: .7
+        slow-release: 0.7
       P: 3
       K: 20
       Fe: 5
@@ -34,22 +33,20 @@ West Parking Strip:
   application: &application_west_parking_strip
     Match: *application_treatments
     April:
-      Rate: .5
+      Rate: 0.5
       N:
         value: 12.5
-        slow-release: .7
+        slow-release: 0.7
       P: 3
       K: 10
-    May: *application_treatments
     June: &application_june_west_parking_strip
-      Rate: .5
+      Rate: 0.5
       N:
         value: 12.5
-        slow-release: .7
+        slow-release: 0.7
       P: 3
       K: 10
       Fe: 10
-      Prodiamine: .0036lb
     August: *application_june_west_parking_strip
     September: *application_treatments
     October: *application_june_west_parking_strip
@@ -61,5 +58,5 @@ Tree Bases:
   application:
     March:
       Prodiamine: .0036lb
-    May:
+    September:
       Prodiamine: .0036lb

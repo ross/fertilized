@@ -8,7 +8,7 @@ Dr Earth All Purpose:
 Vigro Lawn Fertilizer:
   N:
     value: 29
-    slow-release: .02
+    slow-release: 0.02
   K: 4
 Rock Phosphate:
   P: 3
@@ -34,9 +34,10 @@ E.B. Stone Balanced:
   P: 5
   K: 5
 True Organic Lawn Food:
+  available: False
   N:
     value: 10
-    slow-release: .94
+    slow-release: 0.94
   P: 1
   K: 1
   Fe: 1
